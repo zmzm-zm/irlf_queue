@@ -62,7 +62,7 @@ make
 if your project doesn't have other special settings  
 doing this is enough
 
-## example
+## example  
 I write a test file in [`test.cpp`](./examples/test.cpp)  
 it creates 20 writing thread and 20 reading thread  
 then run them together  
