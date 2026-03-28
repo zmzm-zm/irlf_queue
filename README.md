@@ -55,7 +55,7 @@ then include it
 ```
 last, build it
 ```bash
-bkdir build && cd build
+mkdir build && cd build
 cmake ..
 make
 ```
