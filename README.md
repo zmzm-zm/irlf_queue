@@ -88,7 +88,7 @@ I turn 20 to 10:
 ![output](./pic/output.png)
 
 ## compare
-I compare irlf_queue with std::queue [`compare.cpp`](./examples/compare.cpp)
+I compare irlf_queue with std::queue [`compare.cpp`](./examples/compare.cpp)  
 output:  
 ![compare](./pic/compare.png)  
 in fact, std::queue being held back by std::mutex
