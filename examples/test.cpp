@@ -2,12 +2,10 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
-#include <chrono>
 
 int main() {
-	using namespace orin;
 	constexpr int size = 20;
-	irlf_queue<int> q;
+	orin::irlf_queue<int> q;
 	std::thread w_ts[size];
 	std::thread r_ts[size];
 	std::mutex w_io_mutex;
