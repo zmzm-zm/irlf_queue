@@ -112,7 +112,7 @@ public:
 	 *			But I test it many times, in Windows and Linux
 	 *			even let write thread and read thread run at the same time
 	 *			they all runs successfully
-	 * @return node which pop out
+	 * @return node which pop up
 	 */
 	node* pop() {
 		if(_size.load(acquire) == 0) return nullptr;

@@ -1,17 +1,16 @@
 # irlf queue
 ## basic information
-this is a single-forward queue like:  
-|_head_dummy| -> |node1| -> ... -> |nodeN| -> |_tail_dummy|  
-    ^								^			|	  ^  
-	|								|___________|	  |  
-  |_head|										   |_tail|  
-it has a picture in ~/pic/  
+this is a single-forward queue  
+its structure has a picture in ~/pic/  
 and it is lock-free  
 ATTENTION, it doesn't have GC  
 ## member function
 - push(T data)
-> dasda 
+> add a node
 - pop()
-> ass
+> pop up a node
+> type is **node\***
 - size()
-> dsad
+> return queue's size
+> type is **std::size_t\***  
+there are detailed explanation in source code file: `./src/irlf_queue.hpp`
