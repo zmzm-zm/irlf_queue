@@ -1,8 +1,10 @@
 # irlf queue  
 ## basic information  
 this is a single-forward queue  
-its structure has a picture in `~/pic/`
+its structure has a picture in `~/pic/`  
+***basic_queue_structure:***  
 ![basic_queue_structure](./pic/basic_queue_structure.png)  
+***queue_structure:***  
 ![queue_structure](./pic/queue_structure.png)  
 and it is lock-free  
 **ATTENTION**, it doesn't have **GC**  
