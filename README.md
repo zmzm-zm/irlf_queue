@@ -11,6 +11,7 @@ sure, **welcome to make suggestions**
 ## basic information  
 this is a singly lock-free queue  
 it is very **simple**  
+and it has a [`memory pool`](./src/irlf_memory_pool.hpp)
 I will take it as a message queue and use it in my next project
   
 it only has the header file, see it in [`irlf_queue.hpp`](./src/irlf_queue.hpp)  

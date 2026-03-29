@@ -7,10 +7,10 @@
 #include "irlf_queue.hpp"
 
 int main() {
-    std::cout << "single thread, 50w data\n";
-    const int n = 500'000;
+    std::cout << "single thread, 70w data\n";
+    const int n = 700'000;
     std::queue<int> std_queue;
-    orin::irlf_queue<int> irlf_queue;
+    orin::irlf_queue<int, 128> irlf_queue;
     std::cout << "std::queue<int>:\n";
     auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < n; ++i) {
@@ -28,8 +28,8 @@ int main() {
     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << elapsed.count() << " milliseconds\n";
 
-    std::cout << "\nMultithreading, 50w data, 20 threads\n";
-    constexpr int thread_num = 20;
+    std::cout << "\nMultithreading, 70w data, 50 threads\n";
+    constexpr int thread_num = 50;
     std::array<std::thread, thread_num> std_threads;
     std::array<std::thread, thread_num> irl_threads;
     std::mutex std_mutex;

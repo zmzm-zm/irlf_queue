@@ -5,7 +5,7 @@
 
 int main() {
 	constexpr int size = 20;
-	orin::irlf_queue<int> q;
+	orin::irlf_queue<int, 30> q;
 	std::thread w_ts[size];
 	std::thread r_ts[size];
 	std::mutex w_io_mutex;
