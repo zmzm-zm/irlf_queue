@@ -28,9 +28,9 @@ its structure has two pictures in `./pic/`
 
 **ATTENTION**, it doesn't have **GC**  
 to be exact, it isn't perfect  
-because memory pool handles part of GC
+because memory pool handles part of GC  
 of course, if you are interested in it  
-you can have a look
+you can have a look  
 
 ## member function  
 - push(T data)  
