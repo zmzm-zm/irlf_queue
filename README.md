@@ -27,8 +27,10 @@ its structure has two pictures in `./pic/`
 
 
 **ATTENTION**, it doesn't have **GC**  
-***maybe I will do it***  
-of course, if you are interested in it, you can have a try
+to be exact, it isn't perfect  
+because memory pool handles part of GC
+of course, if you are interested in it  
+you can have a look
 
 ## member function  
 - push(T data)  
@@ -89,10 +91,6 @@ I turn 20 to 10:
 ![output](./pic/output.png)
 
 ## compare
-I compare irlf_queue with std::queue [`compare.cpp`](./examples/compare.cpp)
+I compare irlf_queue with std::queue [`compare.cpp`](./examples/compare.cpp)  
 output:  
 ![compare](./pic/compare.png)  
-in fact, std::queue being held back by std::mutex
-mine being held back by new-delete  
-so, I need a memory pool  
-I will do it not very soon
