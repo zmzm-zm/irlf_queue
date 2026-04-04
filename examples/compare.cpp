@@ -4,13 +4,13 @@
 #include <array>
 #include <mutex>
 #include <chrono>
-#include "irlf_queue.hpp"
+#include "lf_queue.hpp"
 
 int main() {
-    std::cout << "single thread, 70w data\n";
+    std::cout << "single thread, 700'000 data\n";
     const int n = 700'000;
     std::queue<int> std_queue;
-    orin::irlf_queue<int, 128> irlf_queue;
+    ir::lf_queue<int, 128> lf_queue;
     std::cout << "std::queue<int>:\n";
     auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < n; ++i) {
@@ -19,19 +19,19 @@ int main() {
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << elapsed.count() << " milliseconds\n";
-    std::cout << "irlf_queue:\n";
+    std::cout << "lf_queue:\n";
     start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < n; ++i) {
-        irlf_queue.push(i);
+        lf_queue.push(i, ir::policy::SINGLE);
     }
     end = std::chrono::high_resolution_clock::now();
     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << elapsed.count() << " milliseconds\n";
 
-    std::cout << "\nMultithreading, 70w data, 50 threads\n";
+    std::cout << "\nMultithreading, 700'000 data, 50 threads\n";
     constexpr int thread_num = 50;
     std::array<std::thread, thread_num> std_threads;
-    std::array<std::thread, thread_num> irl_threads;
+    std::array<std::thread, thread_num> lf_threads;
     std::mutex std_mutex;
 
 
@@ -53,17 +53,17 @@ int main() {
     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << elapsed.count() << " milliseconds\n";
 
-    std::cout << "irlf_queue:\n";
+    std::cout << "lf_queue:\n";
     start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < thread_num; ++i) {
-        irl_threads[i] = std::thread([&irlf_queue, i, n, thread_num]() {
+        lf_threads[i] = std::thread([&lf_queue, i, n, thread_num]() {
             for (int j = 0; j < n / thread_num; ++j) {
-                irlf_queue.push(i * 10'000 + j);
+                lf_queue.push(i * 10'000 + j);
             }
         });
     }
     for (int i = 0; i < thread_num; ++i) {
-        irl_threads[i].join();
+        lf_threads[i].join();
     }
     end = std::chrono::high_resolution_clock::now();
     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

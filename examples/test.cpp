@@ -1,11 +1,11 @@
-#include "irlf_queue.hpp"
+#include "lf_queue.hpp"
 #include <iostream>
 #include <thread>
 #include <mutex>
 
 int main() {
-	constexpr int size = 20;
-	orin::irlf_queue<int, 30> q;
+	constexpr int size = 30;
+	ir::lf_queue<int, 30> q;
 	std::thread w_ts[size];
 	std::thread r_ts[size];
 	std::mutex w_io_mutex;

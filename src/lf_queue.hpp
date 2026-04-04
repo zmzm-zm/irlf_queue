@@ -1,18 +1,14 @@
 #pragma once
 #include <cstddef>
 #include <atomic>
-namespace orin {
-/**
- *	@brief protect myself
- *	@details in order to keep my fingers and eyes alive
- *	@{
- */
-constexpr auto release = std::memory_order_release;
-constexpr auto acquire = std::memory_order_acquire;
-constexpr auto relaxed = std::memory_order_relaxed;
-/** @} */
-template<typename T>
-class irlf_queue {
+#include "lf_memory_pool.hpp"
+#include "defines.hpp"
+using ir::release;
+using ir::acquire;
+using ir::relaxed;
+namespace ir {
+template<typename T, std::size_t memory_pool_size = 10>
+class lf_queue {
 	/**
 	 *	@brief the structure of my queue
 	 *	@details it looks like this:
@@ -34,14 +30,18 @@ private:
 		node(T data):_data(data), _next(nullptr){}
 		std::atomic<node*> _next;
 		T _data;
+		static node get() {
+			return new node{};
+		}
 	};
 	std::atomic<node*> _head;
 	std::atomic<node*> _tail;
 	node* _head_dummy;
 	node* _tail_dummy;
 	std::atomic<std::size_t> _size;
+	ir::lf_memory_pool<node*, memory_pool_size> _pool;
 public:
-	irlf_queue(): _head(new node()),
+	lf_queue(): _head(new node()),
 				_tail(new node()),
 				_head_dummy(new node()),
 				_tail_dummy(new node()),
@@ -58,6 +58,15 @@ public:
 		_tail.load(relaxed)->_next = _tail_dummy;
 		_head_dummy->_next = _tail_dummy;
 		_tail_dummy->_next = _head_dummy;
+		for (int i = 0; i < memory_pool_size; ++i) {
+			_pool.put(new node());
+		}
+	}
+	~lf_queue() {
+		for (int i = 0; i < memory_pool_size; ++i) {
+			auto target =  _pool.get();
+			if (target != nullptr) delete target;
+		}
 	}
 
 	/**
@@ -72,13 +81,24 @@ public:
 	 *			please draw a picture as my saying
 	 * @param data data you want to push
 	 */
-	void push(T data) {
-		node* new_node(new node(data));
+	void push(T data, ir::policy p = ir::policy::MULTI) {
+		node* new_node = _pool.get(p);
+		bool success = false;
+		if (new_node == nullptr) new_node = new node(data);
+		else {
+			new_node->_data = data;
+			success = true;
+		}
 		// in fact, old == _tail_dummy now
 		node* old = _tail.load(acquire)->_next;
 		// remember, '_tail->next' == _tail_dummy, so see '_tail.load(acquire)->_next.load(acquire)' as _tail_dummy
 		// this line let the last node points to new node
-		_tail.load(acquire)->_next.load(acquire)->_next.load(acquire)->_next = new_node;
+		_tail_dummy->_next.load(acquire)->_next = new_node;
+		if (p == ir::policy::SINGLE) {
+			new_node->_next.store(_tail_dummy, relaxed);
+			_tail_dummy->_next.store(new_node, relaxed);
+			return;
+		}
 		// let 'old->_next.load(acquire)' be lvalue(left value), because the first param of compare_exchange_xxx is a left-value reference
 		auto old_next = old->_next.load(acquire);
 		// compare_exchange_xxx returns false when it failed
@@ -102,31 +122,27 @@ public:
 		new_node->_next.compare_exchange_strong(expected, _tail.load(acquire)->_next,
 												release, relaxed);
 		_size.fetch_add(1, release);
+		//_pool.put(new_node);
 	}
 
 	/**
 	 * @brief pop
-	 * @details this version of pop is an old one
-	 *			I don't know why it can run properly
-	 *			I think it seems that have some problems
-	 *			But I test it many times, in Windows and Linux
-	 *			even let write thread and read thread run at the same time
-	 *			they all runs successfully
+	 * @details override version
 	 * @return node which pop up
 	 */
-	node* pop() {
-		if(_size.load(acquire) == 0) return nullptr;
-		// avoid read thread consumes reads _head_dummy
-		node* tmp = _head_dummy->_next;
-		// let _head_dummy points to its next's next
-		_head_dummy->_next.store(_head_dummy->_next.load(acquire)->_next, release);
-		// size isn't sub now
-		// so, size == 1 means no node now
-		// then let _tail_dummy points to _head_dummy
-		if(_size.load(acquire) == 1) _tail.load(acquire)->_next = _head_dummy;
-		_size.fetch_sub(1, release);
-		tmp->_next = nullptr;
-		return tmp;
+	node* pop(ir::policy p = ir::policy::MULTI) {
+		node* old = _head.load(acquire)->_next.load(acquire);
+		if (old == _tail.load(acquire)->_next.load(acquire)) return nullptr;
+		node* expected = old->_next.load(acquire);
+		while(!_head.load(acquire)->_next.load(acquire)->_next.compare_exchange_weak(expected, old->_next.load(acquire)->_next,
+																					release, relaxed)) {
+			if (old == _tail.load(acquire)->_next.load(acquire)) return nullptr;
+		}
+		_tail.load(acquire)->_next.load(acquire)->_next.compare_exchange_strong(expected, _head.load(acquire)->_next,
+																				release, relaxed);
+		node* target = old->_next.load(acquire);
+		_pool.put(target);
+		return target;
 	}
 	std::size_t size() noexcept {
 		return _size.load(acquire);
