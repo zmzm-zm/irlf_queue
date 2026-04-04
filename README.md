@@ -1,97 +1,111 @@
-# irlf queue  
-![C++](https://img.shields.io/badge/C++-17-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-## statement
-I am a middle school student  
-this project has some **insufficient**  
-you can see it as my learning outcomes  
-maybe it can provide you some different ideas?  
-I will improve it in the future  
-sure, **welcome to make suggestions**
+# ir::lf\_queue  
+## standard and applicability  
+![C++](https://img.shields.io/badge/C++-17-blue)  
+![License](https://img.shields.io/badge/license-MIT-green)  
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20Android-lightgrey)  
+> [!NOTE]  
+> it may still work in **macOS**, **IOS**, **HarmonyOS** and more though untested  
+
+## statement  
+this project **is not production-ready**  
+it is one of my learning outcomes  
+**but you can still use it**  
+every version listed here works  
+## agreement  
+The project doesn't use **fold expressions**  
+in this document, `...` is a placeholder and means omitted code, not a fold expression  
+and, `lf` means lock-free
 ## basic information  
-this is a singly lock-free queue  
-it is very **simple**  
-I will take it as a message queue and use it in my next project
+### data structure  
+base:  
+![basic\_queue\_structure](./pic/basic_queue_structure.png)  
+using:  
+![queue\_structure](./pic/queue_structure.png)
+### structure  
+#### project  
+Files:  
+- [`lf_queue.hpp`](./src/lf_queue.hpp)  
+- [`lf_memory_pool.hpp`](./src/lf_memory_pool.hpp)  
+- [`defines.hpp`](./src/defines.hpp)
+---
+#### classes  
+|ir::lf\_queue|public|private|  
+|:---:|:---:|:---:|  
+|function|`lf_queue()`<br>`~lf_queue()`<br>`push(T data)`<br>`pop()`<br>`size()`|-|  
+|variable|-|`node`<br>`_head`<br>`_tail`<br>`_head_dummy`<br>`_tail_dummy`<br>`_size`<br>`_pool`|  
   
-it only has the header file, see it in [`irlf_queue.hpp`](./src/irlf_queue.hpp)  
-### structure
-
----  
-***basic_queue_structure:***  
-![basic_queue_structure](./pic/basic_queue_structure.png)  
-***queue_structure:***  
-![queue_structure](./pic/queue_structure.png)  
-its structure has two pictures in `./pic/`
+|ir::lf\_queue::node|public|private|  
+|:---:|:---:|:---:|  
+|function|`node()`<br>`node(T data)`<br>`get()`|-|  
+|variable|`_next`<br>`_data`|-|  
+  
+|ir::lf\_memory\_pool|public|private|  
+|:---:|:---:|:---:|  
+|function|`lf_memory_pool()`<br>`get()`<br>`put(T data)`|-|  
+|variable|-|`_data`<br>`_pos`|  
 ---
-
-
-**ATTENTION**, it doesn't have **GC**  
-***maybe I will do it***  
-of course, if you are interested in it, you can have a try
-
-## member function  
-- push(T data)  
-> add a node  
-- pop()  
-> pop up a node  
-> type is **node***  
-- size()  
-> return queue's size  
-> type is **std::size_t**  
-
-there are detailed explanation in source code file: [`irlf_queue.hpp`](./src/irlf_queue.hpp)
-
-## use it
-first, cmake it
-```cmake
-target_include_directories(YOUR_PROJECT PUBLIC
-        ${CMAKE_SOURCE_DIR}/third_party/orin
-)
-```
-then include it
-```c++
-#include "irlf_queue.hpp"
+### instruction  
+#### API  
+**ATTENTION**, only user-facing APIs are listed below
+|function|param|return|  
+|:---:|:---:|:---:|  
+|`lf_queue()`|N/A|N/A|  
+|`push()`|`T data`| `void`|  
+|`pop()`|N/A|`ir::lf_queue::node*`|  
+|`size()`|N/A|`std::size_t`|
+#### use in action  
+```cpp
+#include "ir/lf_queue.hpp"
 ...
+ir::lf_queue<int> obj;
+// the easiest usage
+obj.push(123);
+obj.push(456);
+// use "SINGLE" to improve the speed
+obj.push(321, SINGLE);
+// pop() has the same usage
+obj.pop();
+obj.pop(SINGLE);
+// you can retrieve the popped value
+int value = obj.pop(SINGLE);
+std::cout << value << "\n"; // 321
+...
+// don't use "SINGLE" in concurrency programming
+std::thread ts[20];
+for(auto& t: ts) {
+	t = std::move(std::thread([&obj](){
+		obj.push(1);
+	}));
+}
+... // join them
 ```
-last, build it
-```bash
-mkdir build && cd build
-cmake ..
-make
-```
-if your project doesn't have other special settings  
-doing this is enough
-
-## example  
-I write a test file in [`test.cpp`](./examples/test.cpp)  
-it creates 20 writing thread and 20 reading thread  
-then run them together  
-my PC ![Windows](https://img.shields.io/badge/Windows-10-blue) can run it successfully  
-Termux ![Termux](https://img.shields.io/badge/Termux-Android-green) is the same situation
----
-if you want to run it  
-build it firstly:
-```bash
-bkdir build && cd build
-cmake ..
-make
-```
-then run
-```bash
-cd ../bin
-./test
-```
----
-following is the one of outputs  
-in order to avoid it looks too long  
-I turn 20 to 10:  
-![output](./pic/output.png)
-
-## compare
-I compare irlf_queue with std::queue [`compare.cpp`](./examples/compare.cpp)  
-output:  
-![compare](./pic/compare.png)  
-in fact, std::queue being held back by std::mutex
-mine being held back by new-delete  
-so, I need a memory pool  
-I will do it not very soon
+#### attention  
+**DO NOT USE "SINGLE" IN CONCURRENCY PROGRAMMING**  
+if you use it, `push(T data)` and `pop()` will skip atomic operations  
+this will bring many problems
+### source code  
+code is in these files
+- [`lf_queue.hpp`](./src/lf_queue.hpp)  
+- [`lf_memory_pool.hpp`](./src/lf_memory_pool.hpp)  
+- [`defines.hpp`](./src/defines.hpp)  
+the functions `push(T data)` and `pop()` are heavily commented  
+the structure is also explained there  
+you can find them in [`lf_queue.hpp`](./src/lf_queue.hpp)  
+finally, it has an archive named `source code.zip` in the release page of this repository  
+## test  
+### basic test  
+[`test.cpp`](./examples/test.cpp)  
+its output:  
+![test\_output](./pic/test_output.png)  
+### compare with  
+#### std::queue  
+[`compare.cpp`](./examples/compare.cpp)  
+its output:  
+![compare\_output](./pic/compare_output.png)  
+if you can't view pictures:  
+||700'000 data, Single threaded|700'000 data, multithreading|  
+|:---:|:---:|:---:|  
+|std::queue with std::mutex|4ms|196ms|  
+|ir::lf_queue\<int\>|72ms|148ms|  
+> [!NOTE]  
+>  this result doesn't use "SINGLE" param  
