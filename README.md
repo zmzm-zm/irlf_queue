@@ -16,6 +16,11 @@ The project doesn't use **fold expressions**
 in this document, `...` is a placeholder and means omitted code, not a fold expression  
 and, `lf` means lock-free
 ## basic information  
+### data structure  
+base:  
+![basic\_queue\_structure](./pic/basic_queue_structure.png)  
+using:  
+![queue\_structure](./pic/queue_structure.png)
 ### structure  
 #### project  
 Files:  
@@ -91,16 +96,16 @@ finally, it has an archive named `source code.zip` in the release page of this r
 ### basic test  
 [`test.cpp`](./examples/test.cpp)  
 its output:  
-![test_output](./pic/test\_output.png)  
+![test\_output](./pic/test_output.png)  
 ### compare with  
 #### std::queue  
 [`compare.cpp`](./examples/compare.cpp)  
 its output:  
-![compare_output](./pic/compare\_output.png)  
+![compare\_output](./pic/compare_output.png)  
 if you can't view pictures:  
 ||700'000 data, Single threaded|700'000 data, multithreading|  
 |:---:|:---:|:---:|  
 |std::queue with std::mutex|4ms|196ms|  
 |ir::lf_queue\<int\>|72ms|148ms|  
 > [!NOTE]  
-> don't use SINGLE param  
+>  this result doesn't use "SINGLE" param  
